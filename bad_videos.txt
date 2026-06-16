@@ -1,0 +1,12 @@
+Deepfakes/112_892
+Face2Face/112_892
+FaceShifter/112_892
+FaceSwap/112_892
+NeuralTextures/112_892
+original/112
+original/287
+original/385
+original/441
+original/575
+original/751
+original/836

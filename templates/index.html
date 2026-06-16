@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Deepfake Detection</title>
+
+<style>
+
+body{
+font-family: Arial, Helvetica, sans-serif;
+background: linear-gradient(to right,#0f2027,#203a43,#2c5364);
+color:white;
+text-align:center;
+margin:0;
+padding:0;
+}
+
+.container{
+margin-top:100px;
+}
+
+h1{
+font-size:36px;
+margin-bottom:5px;
+}
+
+h2{
+font-weight:normal;
+color:#d6eaff;
+margin-bottom:40px;
+}
+
+.upload-box{
+background:white;
+color:black;
+width:420px;
+margin:auto;
+padding:35px;
+border-radius:12px;
+box-shadow:0px 8px 20px rgba(0,0,0,0.3);
+}
+
+button{
+background:#007bff;
+border:none;
+color:white;
+padding:12px 28px;
+font-size:16px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0056b3;
+}
+
+.spinner{
+display:none;
+margin-left:10px;
+border:4px solid #f3f3f3;
+border-top:4px solid #007bff;
+border-radius:50%;
+width:18px;
+height:18px;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+.output-section{
+display:flex;
+justify-content:center;
+align-items:flex-start;
+gap:40px;
+margin-top:40px;
+}
+
+.video-box{
+background:black;
+padding:10px;
+border-radius:10px;
+}
+
+video{
+width:420px;
+border-radius:8px;
+}
+
+.logs{
+background:black;
+color:#00ff9d;
+padding:20px;
+width:420px;
+border-radius:8px;
+text-align:left;
+font-family:monospace;
+min-height:200px;
+}
+
+.result{
+margin-top:20px;
+font-size:28px;
+font-weight:bold;
+}
+
+.fake{
+color:#ff4c4c;
+}
+
+.real{
+color:#00ff9d;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>A Multi-Identity Size-Invariant Transformer</h1>
+<h2>Deepfake Video Detection</h2>
+
+<div class="upload-box">
+
+<form id="uploadForm">
+
+<input type="file" name="video" accept=".mp4" required>
+
+<br><br>
+
+<button type="submit">Upload & Analyze</button>
+<span class="spinner" id="spinner"></span>
+
+</form>
+
+</div>
+
+<div class="output-section">
+
+<div class="video-box">
+<video id="videoPlayer" controls></video>
+</div>
+
+<div>
+
+<div class="logs" id="logs"></div>
+
+<div class="result" id="result"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+document.getElementById("uploadForm").onsubmit = async function(e){
+
+e.preventDefault()
+
+document.getElementById("logs").innerHTML=""
+document.getElementById("result").innerHTML=""
+
+document.getElementById("spinner").style.display="inline-block"
+
+const file=document.querySelector("input[name='video']").files[0]
+
+document.getElementById("videoPlayer").src=URL.createObjectURL(file)
+
+let formData=new FormData(this)
+
+await fetch("/upload",{
+method:"POST",
+body:formData
+})
+
+const eventSource=new EventSource("/process")
+
+eventSource.onmessage=function(event){
+
+if(event.data.startsWith("RESULT:")){
+
+let result=event.data.split(":")[1]
+
+if(result=="FAKE"){
+
+document.getElementById("result").innerHTML=
+"<span class='fake'>⚠ The Video is Fake</span>"
+
+}
+
+else{
+
+document.getElementById("result").innerHTML=
+"<span class='real'>✔ The Video is Real</span>"
+
+}
+
+document.getElementById("spinner").style.display="none"
+
+eventSource.close()
+
+}
+
+else{
+
+document.getElementById("logs").innerHTML+=event.data+"<br>"
+
+}
+
+}
+
+}
+
+</script>
+
+</body>
+
+</html>
